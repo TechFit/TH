@@ -20,7 +20,7 @@ class m180326_174730_create_transaction_table extends Migration
             'id' => $this->primaryKey(),
             'sender_id' => $this->integer()->notNull(),
             'recipient_id' => $this->integer()->notNull(),
-            'amount' => $this->integer()->notNull(),
+            'amount' => $this->float()->notNull(),
             'created_at' => $this->integer()->null(),
         ]);
 

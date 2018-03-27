@@ -2,12 +2,17 @@
 
 namespace app\controllers;
 
+use app\models\Bill,
+    app\models\User,
+    app\models\Transaction;
+use app\models\form\TransactionForm;
 use Yii;
-use app\models\Transaction;
-use app\models\search\TransactionSearch;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+use yii\data\ActiveDataProvider;
+use yii\filters\AccessControl,
+    yii\filters\VerbFilter;
+use yii\web\Controller,
+    yii\web\Response,
+    yii\web\NotFoundHttpException;
 
 /**
  * TransactionController implements the CRUD actions for Transaction model.
@@ -26,6 +31,17 @@ class TransactionController extends Controller
                     'delete' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => AccessControl::className(),
+                'only' => ['create', 'get-users', 'index'],
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'create', 'get-users'],
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -35,78 +51,38 @@ class TransactionController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new TransactionSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = new ActiveDataProvider([
+            'query' => Transaction::find()->where(['sender_id' => Yii::$app->user->identity->id])->orWhere(['recipient_id' => Yii::$app->user->identity->id]),
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'itemView' => '_item',
         ]);
     }
 
     /**
-     * Displays a single Transaction model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new Transaction model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @return string|\yii\web\Response
+     * @throws \Exception
+     * @throws \yii\db\Exception
      */
     public function actionCreate()
     {
-        $model = new Transaction();
+        $model = new TransactionForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $billTotal = Bill::find()->select('total')->where(['user_id' => Yii::$app->user->identity->id])->scalar();
+
+        if ($model->load(Yii::$app->request->post()) && $model->send()) {
+            return $this->redirect(['index']);
         }
 
         return $this->render('create', [
             'model' => $model,
+            'billTotal' => $billTotal,
         ]);
-    }
-
-    /**
-     * Updates an existing Transaction model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Deletes an existing Transaction model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
     }
 
     /**
@@ -123,5 +99,22 @@ class TransactionController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * List of users without current user(exists in select2 transaction page)
+     *
+     * @param null $q
+     * @return array
+     */
+    public function actionGetUsers($q = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        return [
+            'results' => User::find()->select(['user.id', 'user.username AS text'])
+                ->where(['<>', 'user.id', Yii::$app->user->identity->id])
+                ->andFilterWhere(['like', 'user.username', $q])->asArray()->all()
+        ];
     }
 }

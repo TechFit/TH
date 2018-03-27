@@ -2,15 +2,14 @@
 
 namespace app\controllers;
 
-use app\models\form\SignupForm;
-use app\models\search\UsersBalanceSearch;
-use app\models\search\UserSearch;
+use app\models\form\SignupForm,
+    app\models\form\LoginForm;
+use app\models\search\UsersBalanceSearch,
+    app\models\search\UserSearch;
 use Yii;
 use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\form\LoginForm;
+use yii\web\Controller,
+    yii\web\Response;
 
 class SiteController extends Controller
 {

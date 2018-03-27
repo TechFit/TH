@@ -66,8 +66,15 @@ AppAsset::register($this);
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
-        <?= Alert::widget() ?>
+
+        <?php if (!Yii::$app->user->isGuest):?>
+            <div class="col-md-12">
+                <span class="label label-info pull-right">My bill: <?= Yii::$app->user->identity->bill->total ?></span>
+            </div>
+        <?php endif; ?>
+
         <?= $content ?>
+
     </div>
 </div>
 

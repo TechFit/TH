@@ -5,6 +5,7 @@ use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Transaction */
+/* @var $billTotal integer */
 
 $this->title = 'Create Transaction';
 $this->params['breadcrumbs'][] = ['label' => 'Transactions', 'url' => ['index']];
@@ -16,6 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'billTotal' => $billTotal,
     ]) ?>
 
 </div>

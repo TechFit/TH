@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "transaction".
@@ -10,7 +11,7 @@ use Yii;
  * @property int $id
  * @property int $sender_id
  * @property int $recipient_id
- * @property int $amount
+ * @property double $amount
  * @property int $created_at
  *
  * @property User $recipient
@@ -18,6 +19,8 @@ use Yii;
  */
 class Transaction extends \yii\db\ActiveRecord
 {
+    const LIMITATION = -1000;
+
     /**
      * @inheritdoc
      */
@@ -29,11 +32,25 @@ class Transaction extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::className(),
+                'updatedAtAttribute' => false
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function rules()
     {
         return [
             [['sender_id', 'recipient_id', 'amount'], 'required'],
-            [['sender_id', 'recipient_id', 'amount', 'created_at'], 'integer'],
+            [['sender_id', 'recipient_id', 'created_at'], 'integer'],
+            [['amount'], 'double'],
             [['recipient_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['recipient_id' => 'id']],
             [['sender_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['sender_id' => 'id']],
         ];
@@ -51,6 +68,16 @@ class Transaction extends \yii\db\ActiveRecord
             'amount' => 'Amount',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function afterSave($insert, $changedAttributes){
+        parent::afterSave($insert, $changedAttributes);
+
+        // Update total value on users bill
+        $bill = new Bill();
+        $bill->updateSenderBill(Yii::$app->user->identity->id, $this->amount);
+        $bill->updateRecipientBill($this->recipient, $this->amount);
+        $bill->save();
     }
 
     /**

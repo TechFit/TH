@@ -71,6 +71,7 @@ class Bill extends \yii\db\ActiveRecord
 
     /**
      * @param $user_id
+     * @return bool
      */
     public static function create($user_id)
     {
@@ -80,4 +81,51 @@ class Bill extends \yii\db\ActiveRecord
 
         return $model->save(false);
     }
+
+    /**
+     * For sender - money take away. Method can be used for additional requirements
+     *
+     * @param $sender_id
+     * @param $amount double
+     * @return bool
+     *
+     */
+    public function updateSenderBill($sender_id, $amount)
+    {
+        $senderBill = self::find()->where(['user_id' => $sender_id])->one();
+
+        if ($senderBill) {
+            $total = $senderBill->total - $amount;
+
+            self::updateAll(['total' => $total], ['user_id' => $sender_id]);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * For recipient - money add. Method can be used for additional requirements
+     *
+     * @param $recipient_id
+     * @param $amount double
+     * @return bool
+     */
+    public function updateRecipientBill($recipient_id, $amount)
+    {
+        $recipientBill = self::find()->where(['user_id' => $recipient_id])->one();
+
+        if ($recipientBill) {
+
+            $total = $recipientBill->total + $amount;
+
+            self::updateAll(['total' =>  $total], ['user_id' => $recipient_id]);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
