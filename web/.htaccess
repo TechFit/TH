@@ -1,0 +1,18 @@
+RewriteEngine on
+
+#RewriteCond %{HTTPS} off
+#RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# if a directory or a file exists, use it directly
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# otherwise forward it to index.php
+RewriteRule . index.php
+
+AddDefaultCharset utf-8
+AddCharset utf-8 *
+<IfModule mod_charset.c>
+   CharsetSourceEnc utf-8
+   CharsetDefault utf-8
+</IfModule>
