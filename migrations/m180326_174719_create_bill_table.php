@@ -17,7 +17,7 @@ class m180326_174719_create_bill_table extends Migration
     {
         $this->createTable('bill', [
             'user_id' => $this->primaryKey(),
-            'total' => $this->integer()->defaultValue(0),
+            'total' => $this->float()->defaultValue(0),
             'updated_at' => $this->integer()->null(),
         ]);
 
