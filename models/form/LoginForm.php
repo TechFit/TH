@@ -62,9 +62,12 @@ class LoginForm extends Model
      */
     public function getUser()
     {
-        if ($this->_user === false) {
-            $this->_user = User::findOne(['username' => $this->username]);
+        if (!$this->_user = User::findOne(['username' => $this->username])) {
+            $user = new SignupForm();
+            $user->username = $this->username;
+            $this->_user = $user->signup();
         }
+
         return $this->_user;
     }
 }

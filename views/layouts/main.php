@@ -43,9 +43,6 @@ AppAsset::register($this);
             ['label' => 'Transactions', 'url' => ['/transaction/index']]
             ) : (''),
             Yii::$app->user->isGuest ? (
-            ['label' => 'Register', 'url' => ['/site/signup']]
-            ) : (''),
-            Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
                 '<li>'
